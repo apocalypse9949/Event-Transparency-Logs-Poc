@@ -1,0 +1,89 @@
+<div class="container">
+  <div class="header">
+    <h1>Registry Transparency Log</h1>
+    <p>Real-time, cryptographically verifiable events from RubyGems.org simulation.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Merkle Root</h3>
+      <code id="merkle-root"><%= @merkle_root %></code>
+    </div>
+    <div class="stat-card">
+      <h3>Tree Size</h3>
+      <div class="stat-value"><%= @tree_size %></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Recent Log Entries</h2>
+    <table class="events-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Gem</th>
+          <th>Actor</th>
+          <th>Hash</th>
+          <th>Integrity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recent_events.each do |event| %>
+          <tr>
+            <td><%= event.id %></td>
+            <td><span class="badge <%= event.event_type %>"><%= event.event_type %></span></td>
+            <td><%= event.rubygem_id %></td>
+            <td>User #<%= event.actor_id %></td>
+            <td class="hash-cell"><code><%= event.hash_code.first(12) %>...</code></td>
+            <td>
+              <button class="verify-btn" onclick="verifyEvent(<%= event.id %>)">Verify</button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  async function verifyEvent(eventId) {
+    const response = await fetch(`/api/v1/transparency_log/proof?event_id=${eventId}`);
+    const data = await response.json();
+    
+    const verifyResponse = await fetch('/api/v1/transparency_log/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leaf_hash: data.leaf_hash,
+        proof: data.proof,
+        root_hash: data.root_hash
+      })
+    });
+    const verifyData = await verifyResponse.json();
+    
+    const modal = document.getElementById('modal');
+    const modalBody = document.getElementById('modal-body');
+    
+    modalBody.innerHTML = `
+      <h3>Verification Results for Event #${eventId}</h3>
+      <p><strong>Status:</strong> ${verifyData.valid ? '<span class="valid-text">VERIFIED</span>' : '<span class="invalid-text">FAILED</span>'}</p>
+      <p><strong>Proof Path:</strong></p>
+      <pre>${JSON.stringify(data.proof, null, 2)}</pre>
+      <p>This event belongs to the Merkle Tree with root:</p>
+      <code>${data.root_hash}</code>
+    `;
+    modal.style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
+</script>
