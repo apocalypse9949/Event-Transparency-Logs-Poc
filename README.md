@@ -2,7 +2,7 @@
 
 A proof-of-concept for a tamper-proof, append-only transparency log modeled after Certificate Transparency. This system uses a combination of **Hash Chaining** and **Merkle Trees** to ensure chronological integrity and provide efficient proofs of inclusion for registry events.
 
-## 🚀 Overview
+##  Overview
 
 This application simulates a package registry (like RubyGems) where every significant action—such as pushing a new gem version or changing owners—is recorded in a verifiable, immutable log.
 
@@ -12,7 +12,7 @@ This application simulates a package registry (like RubyGems) where every signif
 - **Auditability**: A dedicated verification script to ensure the entire chain is intact.
 - **REST API**: Endpoints to retrieve events and their inclusion proofs.
 
-## 🏗️ Architecture
+##  Architecture
 
 ### 1. Hash Chaining (Linear Integrity)
 Each `RegistryEvent` contains a `previous_hash` field, which is the SHA-256 hash of the immediately preceding event. If any past property of an event is modified, all subsequent hashes in the chain will break.
@@ -23,7 +23,7 @@ While linear chaining ensures integrity, Merkle Trees allow clients to verify th
 **Log Consistency**: As new events are added, a new Merkle Root is calculated.
 **Inclusion Proof**: A compact list of intermediate hashes that allow a client to reconstruct the root from their specific event hash.
 
-## 🛠️ Getting Started
+##  Getting Started
 
 ### Prerequisites:
 - Ruby 3.2.x
@@ -40,7 +40,7 @@ rails db:migrate
 rails db:seed
 ```
 
-## 🔍 Verification & Results
+##  Verification & Results
 
 The system includes a verification script that audits the entire log and generates cryptographic proofs.
 
@@ -67,11 +67,10 @@ Generated proof for Event 3 (index 2)
 Inclusion Proof status: SUCCESS
 ```
 
-## 📚 Core Components
+##  Core Components
 
 - **`RegistryEvent`**: The core data model representing an entry in the log.
 - **`MerkleTreeService`**: A stateless service that implements the Merkle algorithm (tree building, proof generation, and verification).
 - **`app/controllers/api/v1`**: API endpoints for external auditing.
 
----
-*Built with ❤️ to explore cryptographic integrity systems.*
+
